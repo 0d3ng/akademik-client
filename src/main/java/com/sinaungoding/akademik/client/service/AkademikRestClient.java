@@ -17,10 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class AkademikRestClient {
@@ -33,8 +36,7 @@ public class AkademikRestClient {
     private RestTemplate restTemplate;
 
     public String getMahasiswas() {
-        String response = restTemplate.getForObject(basUrl + "/api/mahasiswa", String.class, new Object() {
-        });
+        String response = restTemplate.getForObject(basUrl + "/api/mahasiswa", String.class);
         LOGGER.info(response);
         return response;
     }
@@ -44,9 +46,21 @@ public class AkademikRestClient {
         LOGGER.info(mahasiswa.toString());
         return mahasiswa;
     }
-//
-//    public List<Mahasiswa> getMahasiswaNama(String nama) {
-//        return restTemplate.getForObject(basUrl + "/api/mahasiswaNama", Page.class, nama).getContent();
-//    }
+
+    public String getMahasiswaNama(String nama) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(basUrl + "/api/mahasiswaNama")
+                .queryParam("nama", nama);
+        LOGGER.info(builder.toUriString());
+        String response = restTemplate.getForObject(builder.toUriString(), String.class);
+        LOGGER.info(response);
+        return response;
+    }
+
+    public boolean insert(Mahasiswa mahasiswa) {
+        HttpEntity<Mahasiswa> mahasiswaHttpEntity = new HttpEntity<>(mahasiswa);
+        ResponseEntity<String> response = restTemplate.exchange(basUrl + "/api/mahasiswa", HttpMethod.POST, mahasiswaHttpEntity, String.class);
+        LOGGER.info("" + response.getStatusCode().value());
+        return (HttpStatus.CREATED.value() == response.getStatusCodeValue());
+    }
 
 }
